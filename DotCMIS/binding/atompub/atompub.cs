@@ -2502,6 +2502,7 @@ namespace DotCMIS.Binding.AtomPub
             // read and parse
             HttpUtils.Response resp = Read(url);
             AtomFeed feed = Parse<AtomFeed>(resp.Stream);
+            String lastChangeLogToken = null;
 
             // handle top level
             foreach (AtomElement element in feed.GetElements())
@@ -2516,6 +2517,10 @@ namespace DotCMIS.Binding.AtomPub
                 else if (IsInt(NameNumItems, element))
                 {
                     result.NumItems = (long)element.Object;
+                }
+                else if (IsStr("changeLogToken", element))
+                {
+                    lastChangeLogToken = (string)element.Object;
                 }
             }
 
@@ -2541,6 +2546,13 @@ namespace DotCMIS.Binding.AtomPub
                         result.Objects.Add(hit);
                     }
                 }
+            }
+
+            if (changeLogToken != null)
+            {
+                // the AtomPub binding cannot return a new change log token,
+                // but an OpenCMIS server uses a proprietary tag
+                changeLogToken = lastChangeLogToken;
             }
 
             return result;
